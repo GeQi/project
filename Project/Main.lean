@@ -331,6 +331,19 @@ def restrictEndtoSubgroup {G: Type*} [Group G] [Fintype G] [IsCyclic G]
   (Subgroup.inclusion (res_image σ H)).comp (MonoidHom.rangeRestrict (MonoidHom.restrict σ H))
 
 -- @[to_additive (attr := simp)]
+def restrictEndtoSubgroup' {G: Type*} [Group G] [Fintype G] [IsCyclic G]
+    (H : Subgroup G) (σ : Monoid.End G) : Monoid.End H where
+  toFun := fun h => ⟨σ h, by
+    apply res_image σ H
+    exact ⟨h, rfl⟩
+    ⟩
+  map_one' := by
+    refine (Submonoid.mk_eq_one H.toSubmonoid).mpr ?_
+    exact OneHom.copy.proof_1 (↑σ) (⇑σ) rfl
+  map_mul' := by
+    sorry
+
+-- @[to_additive (attr := simp)]
 -- def restrictEndtoSubgroup_same {G: Type*} [Group G] [Fintype G] [IsCyclic G]
 --     (H : Subgroup G) (σ : Monoid.End G) (g : H): (restrictEndtoSubgroup H σ) g = σ g := by
 --   simp only [restrictEndtoSubgroup]
@@ -374,26 +387,29 @@ def absGalToRootsOfUnityEnd (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact 
   map_one' := sorry
   map_mul' := sorry
 
+def addAbsGalToRootsOfUnityAddEnd (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p)
+    (k : ℕ) : Additive (Field.absoluteGaloisGroup K) →+ (AddMonoid.End (Additive (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K)))) := sorry
+
 lemma card_of_rootsOfUnity (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p)
     (k : ℕ) : Fintype.card (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K)) = l ^ k := by
   sorry
 
 def fixZMod (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p)
-    (k : ℕ) : ZMod (Fintype.card (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K))) →* ZMod (l ^ k) :=
+    (k : ℕ) : ZMod (Fintype.card (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K))) →+ ZMod (l ^ k) :=
   sorry
 
 noncomputable def f (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p)
-    (k : ℕ) : (Field.absoluteGaloisGroup K) →* ZMod (l ^ k) :=
-  (fixZMod K h k).comp (endToMul.toAddMonoidHom.comp (absGalToRootsOfUnityEnd K h k))
+    (k : ℕ) : Additive (Field.absoluteGaloisGroup K) →+ ZMod (l ^ k) := sorry
+  -- (fixZMod K h k).comp (endToMul.toAddMonoidHom.comp (addAbsGalToRootsOfUnityAddEnd K h k))
 
 lemma f_compat {K : Type*} [Field K] {l p : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p)
     (k1 k2 : ℕ) (hk : k1 ≤ k2) :
       AddMonoidHom.comp (ZMod.castHom (Nat.pow_dvd_pow l hk) (ZMod (l ^ k1))) (f K h k2) = f K h k1 := by
-  ext σ
-  rw [f]
-  dsimp
+  -- ext σ
+  -- rw [f]
+  -- dsimp
   sorry
 
 noncomputable def cyclotomic_chracter (K : Type*) [Field K] (l p : ℕ) [CharP K p] [Fact (Nat.Prime l)] (h: l ≠ p) :
-    Field.absoluteGaloisGroup K →* PadicInt l :=
+    Additive (Field.absoluteGaloisGroup K) →+ PadicInt l :=
   PadicInt.lift' (f_compat h)
