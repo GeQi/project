@@ -344,12 +344,6 @@ def restrictEndtoSubgroup' {G: Type*} [Group G] [Fintype G] [IsCyclic G]
   map_mul' := by
     sorry
 
--- @[to_additive (attr := simp)]
--- def restrictEndtoSubgroup_same {G: Type*} [Group G] [Fintype G] [IsCyclic G]
---     (H : Subgroup G) (σ : Monoid.End G) (g : H): (restrictEndtoSubgroup H σ) g = σ g := by
---   simp only [restrictEndtoSubgroup]
---   sorry
-
 @[to_additive (attr := simp) inst_this']
 instance inst_this {G: Type*} [Group G] [Fintype G] (H : Subgroup G) : Fintype H := sorry
 
@@ -371,29 +365,12 @@ lemma eq_smth {m n : ℕ} (h : m ∣ n) (x : ZMod n):
   refine Nat.modEq_iff_dvd.mp ?_
   exact Nat.ModEq.symm (Nat.mod_modEq (ZMod.val x) m)
 
--- lemma llll {G: Type*} [Group G] [Fintype G] [IsCyclic G] (g : G) (n : ℕ):
---     g ^ n = g ^ (n % (Fintype.card G)) := by
---   exact (pow_mod_card g n).symm
---   exact (zpow_mod_card g n).symm
-
-lemma gggg {G: Type*} [Group G] (g : G) (n : ℕ):
-    g ^ n = g ^ (n : ℤ) := by
-  exact (zpow_coe_nat g n).symm
-
 set_option maxHeartbeats 0
 lemma is_endToPow_bla {G: Type*} [Group G] [Fintype G] [IsCyclic G] (H : Subgroup G) (σ : Monoid.End G) :
     is_endToPow (restrictEndtoSubgroup' H σ) (((ZMod.castHom (subgroup_card_div_card H) (ZMod (Fintype.card H))) ∘ endToPow) σ) := by
   intro g
-  simp only [restrictEndtoSubgroup', MonoidHom.coe_mk, OneHom.coe_mk]
-  simp only [Function.comp_apply]
-  -- simp only [restrictEndtoSubgroup', MonoidHom.coe_mk, OneHom.coe_mk, inst_this, endToPow,
-  --   MulEquiv.coe_mk, Equiv.coe_fn_mk, Function.comp_apply, endToPowFun, is_endToPow,
-  --   ZMod.nat_cast_val, is_endToIntPow, ZMod.castHom_apply]
-
-  rw [eq_smth'']
-  rw [zpow_coe_nat]
-  rw [pow_mod_card]
-  rw [← zpow_coe_nat]
+  simp only [restrictEndtoSubgroup', MonoidHom.coe_mk, OneHom.coe_mk, Function.comp_apply]
+  rw [eq_smth'', zpow_coe_nat, pow_mod_card, ← zpow_coe_nat]
   apply Subtype.coe_eq_of_eq_mk
   apply is_endToPow_endToPowFun
 
@@ -423,9 +400,6 @@ def absGalToRootsOfUnityEnd (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact 
   toFun := sorry
   map_one' := sorry
   map_mul' := sorry
-
-def addAbsGalToRootsOfUnityAddEnd (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p)
-    (k : ℕ) : Additive (Field.absoluteGaloisGroup K) →+ (AddMonoid.End (Additive (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K)))) := sorry
 
 lemma card_of_rootsOfUnity (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p)
     (k : ℕ) : Fintype.card (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K)) = l ^ k := by
