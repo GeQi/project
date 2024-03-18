@@ -399,8 +399,8 @@ lemma subgroup_card_div_card'' {G: Type*} [Group G]
 lemma is_endToPow_blabla {G: Type*} [Group G] (H H' : Subgroup G)
     [Fintype H] [IsCyclic H]
       [Fintype H'] [IsCyclic H']
-        (σ : Monoid.End G) (h : H' ≤ H):
-    is_endToPow (restrictEndtoSubgroup' H' σ) (((ZMod.castHom (subgroup_card_div_card'' h) (ZMod (Fintype.card H'))) ∘ endToPow) (restrictEndtoSubgroup' H σ)) := sorry
+        (σ : Monoid.End G) (h : H' ≤ H) :
+  is_endToPow (restrictEndtoSubgroup' H' σ) (((ZMod.castHom (subgroup_card_div_card'' h) (ZMod (Fintype.card H'))) ∘ endToPow) (restrictEndtoSubgroup' H σ)) := sorry
 
 @[simp]
 lemma endToPow_compat_with_subgroup {G: Type*} [Group G] [Fintype G] [IsCyclic G] (H : Subgroup G) :
@@ -422,6 +422,7 @@ lemma endToPow_compat_with_subgroup {G: Type*} [Group G] [Fintype G] [IsCyclic G
 --           G →+ ℤ_[p] :=
 --   sorry
 
+-- maybe show this is compat?
 -- absoluteGaloisGroup acts on the mul group of l^k roots of unity
 def galToRootsOfUnityEnd (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p)
     (k : ℕ) : (Field.absoluteGaloisGroup K) →* (Monoid.End (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K))) where
@@ -453,6 +454,11 @@ def Subgroup.topEndEquiv {G : Type*} [Group G] :
 
 def galToMulEnd' {K : Type*} [Field K] :
     (Field.absoluteGaloisGroup K) →* Monoid.End (⊤ : Subgroup (AlgebraicClosure K)ˣ) := sorry
+
+-- -- absoluteGaloisGroup acts on the mul group of l^k roots of unity
+-- def galToRootsOfUnityEnd (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p)
+--     (k : ℕ) : (Field.absoluteGaloisGroup K) →* (Monoid.End (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K))) :=
+--   restrictEndtoSubgroupRel galToMulEnd'
 
 lemma galToRootsOfUnityEnd_compat (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p)
     (k1 k2 : ℕ) (hk : k1 ≤ k2) (σ : Field.absoluteGaloisGroup K) :
