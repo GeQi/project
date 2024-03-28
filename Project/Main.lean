@@ -69,6 +69,32 @@ lemma zmod_val_sub_div_by_n_eq (n : ℕ) [nz: NeZero n] (a b : ZMod n) (h : (n :
   · simp only [ZMod.val, ZMod.val_nat_cast] at h6
     exact Fin.eq_of_val_eq h6
 
+@[to_additive]
+lemma pow_eq_one_of_order_dvd {G : Type*} [Group G] (g: G) (a: ℤ)
+    (hh : (Monoid.exponent G : ℤ) ∣ a) : g ^ a = 1 := by
+  obtain ⟨c, hc⟩ := hh
+  rw [hc, zpow_mul, zpow_natCast, Monoid.pow_exponent_eq_one, one_zpow]
+
+@[to_additive]
+lemma pow_eq_pow_of_order_dvd_dif {G : Type*} [Group G] (g: G) (a b: ℤ)
+    (h : (Monoid.exponent G : ℤ) ∣ a - b) : g ^ a = g ^ b := by
+  rw [← mul_inv_eq_one, ← zpow_sub]
+  exact pow_eq_one_of_order_dvd g (a - b) h
+
+@[simp]
+lemma zmod_val_mul_mod (n : ℕ) (a b : ZMod n) :
+    (n : ℤ) ∣ ((ZMod.val a : ℤ) * (ZMod.val b : ℤ) - (ZMod.val (a * b) : ℤ)) := by
+  rw [Int.dvd_iff_emod_eq_zero, ZMod.val_mul]
+  simp only [Int.ofNat_emod, Nat.cast_mul, EuclideanDomain.mod_eq_zero]
+  exact Int.dvd_sub_of_emod_eq rfl
+
+@[simp]
+lemma zmod_val_add_mod (n : ℕ) [NeZero n] (a b : ZMod n) :
+    (n : ℤ) ∣ ((ZMod.val a : ℤ) + (ZMod.val b : ℤ) - (ZMod.val (a + b) : ℤ)) := by
+  rw [Int.dvd_iff_emod_eq_zero, ZMod.val_add]
+  simp only [Int.ofNat_emod, Nat.cast_mul, EuclideanDomain.mod_eq_zero]
+  exact Int.dvd_sub_of_emod_eq rfl
+
 
 -- Proper definition starts here
 
@@ -82,14 +108,18 @@ def is_endToIntPow {G : Type*} [Group G] (σ : G →* G) (n : ℤ) :=
 
 @[to_additive (attr := simp) is_endToMul]
 def is_endToPow {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :=
-  is_endToIntPow σ (ZMod.val n)
+  is_endToIntPow σ (ZMod.val n : ℤ)
 
-@[to_additive (attr := simp) is_endToMul_equiv_is_endToIntMul]
-lemma is_endToPow_equiv_is_endToIntPow
-    {G : Type*} [Group G] [Fintype G] [IsCyclic G]
-      (σ : G →* G) (n : ZMod (Fintype.card G)) :
-        is_endToPow σ n ↔ is_endToIntPow σ (ZMod.val n) := by
-  simp only [is_endToPow]
+-- @[to_additive (attr := simp) is_endToMul]
+-- def is_endToPow {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :=
+--   ∀ g : G, σ g = g ^ (ZMod.val n)
+
+-- @[to_additive (attr := simp) is_endToMul_equiv_is_endToIntMul]
+-- lemma is_endToPow_equiv_is_endToIntPow
+--     {G : Type*} [Group G] [Fintype G] [IsCyclic G]
+--       (σ : G →* G) (n : ZMod (Fintype.card G)) :
+--         is_endToPow σ n ↔ is_endToIntPow σ (ZMod.val n) := by
+--   simp only [is_endToPow]
 
 @[to_additive (attr := simp)]
 lemma MonoidHom.map_cyclic_well_defined_mod_card {G : Type*} [Group G] [Fintype G] [h : IsCyclic G]
@@ -153,35 +183,6 @@ lemma is_endToMul_of_one {G : Type*} [AddGroup G] [Fintype G] [IsAddCyclic G] :
   rw [(ZMod.val_one_eq_one_mod (Fintype.card G))]
   simp only [Int.ofNat_emod, mod_card_zsmul, Nat.cast_one, one_zsmul]
 
-@[to_additive]
-lemma pow_eq_one_of_order_dvd {G : Type*} [Group G] (g: G) (a: ℤ)
-    (hh : (Monoid.exponent G : ℤ) ∣ a) : g ^ a = 1 := by
-  obtain ⟨c, hc⟩ := hh
-  rw [hc, zpow_mul, zpow_natCast, Monoid.pow_exponent_eq_one, one_zpow]
-
-@[to_additive]
-lemma pow_eq_pow_of_order_dvd_dif {G : Type*} [Group G] (g: G) (a b: ℤ)
-    (h : (Monoid.exponent G : ℤ) ∣ a - b) : g ^ a = g ^ b := by
-  obtain ⟨c, hc⟩ := h
-  have : g ^ (a - b) = 1 := by
-    apply pow_eq_one_of_order_dvd g (a - b) _
-    exact Exists.intro c hc
-  rwa [← mul_inv_eq_one, ← zpow_sub]
-
-@[simp]
-lemma zmod_val_mul_mod (n : ℕ) (a b : ZMod n) :
-    (n : ℤ) ∣ ((ZMod.val a : ℤ) * (ZMod.val b : ℤ) - (ZMod.val (a * b) : ℤ)) := by
-  rw [Int.dvd_iff_emod_eq_zero, ZMod.val_mul]
-  simp only [Int.ofNat_emod, Nat.cast_mul, EuclideanDomain.mod_eq_zero]
-  exact Int.dvd_sub_of_emod_eq rfl
-
-@[simp]
-lemma zmod_val_add_mod (n : ℕ) [NeZero n] (a b : ZMod n) :
-    (n : ℤ) ∣ ((ZMod.val a : ℤ) + (ZMod.val b : ℤ) - (ZMod.val (a + b) : ℤ)) := by
-  rw [Int.dvd_iff_emod_eq_zero, ZMod.val_add]
-  simp only [Int.ofNat_emod, Nat.cast_mul, EuclideanDomain.mod_eq_zero]
-  exact Int.dvd_sub_of_emod_eq rfl
-
 @[simp]
 lemma is_endToPow_of_mul {G : Type*} [Group G] [Fintype G] [h : IsCyclic G]
     {σ τ : Monoid.End G} {m n : ZMod (Fintype.card G)}
@@ -217,9 +218,12 @@ lemma is_endToMul_of_add {G : Type*} [AddGroup G] [Fintype G] [h : IsAddCyclic G
       (hm : is_endToMul σ m) (hn : is_endToMul τ n) :
         is_endToMul (σ + τ) (m + n) := by
   intro g
-  letI : NeZero (AddMonoid.exponent G) := by
-    sorry
-  sorry
+  have a : (σ + τ) g = σ g + τ g := by rfl
+  rw [a, hn, hm, ←add_zsmul]
+  have : ((AddMonoid.exponent G) : ℤ) ∣ ((ZMod.val m : ℤ) + (ZMod.val n : ℤ) - (ZMod.val (m + n) : ℤ)) := by
+    rw [IsAddCyclic.exponent_eq_card]
+    exact zmod_val_add_mod (Fintype.card G) m n
+  exact nsmul_eq_nsmul_of_order_dvd_dif g ((ZMod.val m : ℤ) + (ZMod.val n : ℤ)) (ZMod.val (m + n)) this
 
 @[to_additive (attr := simp) endToMulFun]
 noncomputable def endToPowFun {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : Monoid.End G) :
@@ -230,11 +234,13 @@ noncomputable def endToPowFun {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ
 def endToPowFun_spec {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : Monoid.End G) :=
   Exists.choose_spec (exists_unique_endToPow σ)
 
+-- endToPow statisfies the predicate is_endToPow
 @[to_additive (attr := simp) is_endToMul_endToMulFun]
 lemma is_endToPow_endToPowFun {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : Monoid.End G) :
     is_endToPow σ (endToPowFun σ) :=
   (endToPowFun_spec σ).left
 
+-- is_endToPow is uniquely satisfied by endToPow
 @[to_additive (attr := simp) is_endToMul_equal_endToMulFun]
 lemma is_endToPow_equal_endToPowFun {G : Type*} [Group G] [Fintype G] [IsCyclic G] {σ : Monoid.End G}
     {n : ZMod (Fintype.card G)} (h : is_endToPow σ n) :
@@ -384,9 +390,9 @@ def restrictEndtoSubgroup {G: Type*} [Group G]
     simp only [map_mul, Submonoid.coe_mul, Subgroup.coe_toSubmonoid, Submonoid.mk_mul_mk,
       Subtype.forall, implies_true, forall_const]
 
-@[to_additive (attr := simp) inst_this']
-noncomputable
-instance inst_this {G: Type*} [Group G] [Fintype G] (H : Subgroup G) : Fintype H := Fintype.ofFinite H
+-- @[to_additive (attr := simp) inst_this']
+-- noncomputable
+-- instance inst_this {G: Type*} [Group G] [Fintype G] (H : Subgroup G) : Fintype H := Fintype.ofFinite H
 
 -- @[to_additive (attr := simp)]
 -- lemma subgroup_card_div_card {G: Type*} [Group G] [Fintype G] [IsCyclic G]
@@ -400,10 +406,9 @@ lemma eq_smth'' {m n : ℕ} (h : m ∣ n) (x : ZMod n):
   | k+1 => sorry
 
 lemma eq_smth {m n : ℕ} (h : m ∣ n) (x : ZMod n):
-    (m : ℤ) ∣ ZMod.val (ZMod.castHom h (ZMod m) x) - ZMod.val x := by
+    (m : ℤ) ∣ ZMod.val x - ZMod.val (ZMod.castHom h (ZMod m) x) := by
   rw [eq_smth'']
-  refine Nat.modEq_iff_dvd.mp ?_
-  exact Nat.ModEq.symm (Nat.mod_modEq (ZMod.val x) m)
+  exact Nat.modEq_iff_dvd.mp (Nat.mod_modEq (ZMod.val x) m)
 
 -- @[simp]
 -- lemma is_endToPow_bla {G: Type*} [Group G] [Fintype G] [IsCyclic G] (H : Subgroup G) (σ : Monoid.End G) :
@@ -420,18 +425,62 @@ lemma subgroup_card_div_card {G: Type*} [Group G]
       Fintype.card H' ∣ Fintype.card H := by
   sorry
 
+def is_endToPow'
+
+def www (G : Type*) [Group G] [Fintype G] [IsCyclic G] (σ : Monoid.End G) :
+    ∀ g : G, σ g = g ^ (ZMod.val (endToPow σ)) := by
+  intro g
+  rw [← zpow_natCast]
+  apply is_endToPow_endToPowFun
+
+
+def test (G : Type*) [Group G] (H H' : Subgroup G) (h: H ≤ H') (a b : H) (hh : Subgroup.inclusion h a = Subgroup.inclusion h b) :
+    a = b := by
+  ext
+  #check Subtype.ext_iff_val
+  #check Subtype.ext_iff
+
 @[simp]
 lemma is_endToPow_of_residue_res_subgroup {G: Type*} [Group G] (H H' : Subgroup G)
       [Fintype H] [IsCyclic H]
         [Fintype H'] [IsCyclic H']
           (σ : Monoid.End H) (h : H' ≤ H) :
     is_endToPow (restrictEndtoSubgroup h σ)
-      (((ZMod.castHom (subgroup_card_div_card h) (ZMod (Fintype.card H'))) ∘ endToPow) σ) := by
+      (ZMod.castHom (subgroup_card_div_card h) (ZMod (Fintype.card H')) (endToPow σ)) := by
   intro g
-  simp only [restrictEndtoSubgroup, MonoidHom.coe_mk, OneHom.coe_mk, endToPow, MulEquiv.coe_mk,
-    Equiv.coe_fn_mk, Function.comp_apply, endToPowFun, is_endToPow, ZMod.nat_cast_val,
-    is_endToIntPow, Subtype.forall, ZMod.castHom_apply]
+  have : Subgroup.inclusion h ((restrictEndtoSubgroup h σ) g) = σ (Subgroup.inclusion h g) := by
+    rfl
 
+  change (Subgroup.inclusion h) (restrictEndtoSubgroup h σ g) = (Subgroup.inclusion h) (g ^ ↑(ZMod.val ((ZMod.castHom _ (ZMod (Fintype.card ↥H'))) (endToPow σ))))
+
+  sorry
+  obtain ⟨n, hn⟩ := exists_endToPow σ
+  -- rw [is_endToPow_endToPowFun]
+  -- rw [← is_endToPow_equal_endToPowFun]
+  simp only [restrictEndtoSubgroup]
+  -- obtain ⟨n, hn⟩ := exists_endToPow σ
+  -- apply Subtype.coe_eq_of_eq_mk
+  -- rw [hn]
+  -- sorry
+  -- simp only [restrictEndtoSubgroup, MonoidHom.coe_mk, OneHom.coe_mk, endToPow, MulEquiv.coe_mk,
+  --   Equiv.coe_fn_mk, endToPowFun, is_endToPow, ZMod.nat_cast_val, is_endToIntPow, Subtype.forall,
+  --   ZMod.castHom_apply]
+  apply Subtype.coe_eq_of_eq_mk
+  dsimp only [restrictEndtoSubgroup, MonoidHom.coe_mk, OneHom.coe_mk, endToPow, MulEquiv.coe_mk,
+    Equiv.coe_fn_mk, endToPowFun, is_endToPow, is_endToIntPow]
+  rw [hn]
+  have : (SubgroupClass.inclusion h g) ^ (ZMod.val n : ℤ) = (SubgroupClass.inclusion h) (g ^ (ZMod.val n)) := by
+    sorry
+  rw [this]
+  have this2 : ((SubgroupClass.inclusion h) (g ^ ZMod.val n) : G) = g ^ ZMod.val n := by
+    exact rfl
+  rw [this2]
+
+  -- rw [SubgroupClass.inclusion_self]
+  -- apply pow_eq_pow_of_order_dvd_dif
+  -- rw [IsCyclic.exponent_eq_card]
+  -- -- apply eq_smth''
+  -- apply [eq_smth (subgroup_card_div_card h) _]
   sorry
 
 -- @[simp]
@@ -472,7 +521,7 @@ def monoidEndtoUnitEnd {M : Type*} [CommMonoid M]:
         simp only [Units.val_mul, map_mul]
     }
     map_one' := rfl
-    map_mul' := sorry
+    map_mul' := fun _ _ => rfl
 
 def unitEndToRootsOfUnityEnd (k : ℕ+) {M : Type*} [CommMonoid M]:
   Monoid.End Mˣ →* Monoid.End (rootsOfUnity k M) where
@@ -489,7 +538,7 @@ def unitEndToRootsOfUnityEnd (k : ℕ+) {M : Type*} [CommMonoid M]:
         exact Subtype.ext (MonoidHom.map_mul σ x.1 y.1)
     }
     map_one' := rfl
-    map_mul' := sorry
+    map_mul' := fun _ _ => rfl
 
 def ringEndToMonoidEnd {R : Type*} [CommRing R] :
     (R →+* R) →* Monoid.End R :=
@@ -505,18 +554,18 @@ def ringEndToMonoidEnd {R : Type*} [CommRing R] :
 --   (unitEndToRootsOfUnityEnd (⟨l, Fin.size_pos'⟩^k.val)) ∘ monoidEndtoUnitEnd ∘ AlgHom.toMonoidHom' ∘ AlgEquiv.toAlgHom
 --     -- unitEndToRootsOfUnityEnd k ∘ monoidEndtoUnitEnd ∘ AlgHom.toMonoidHom' ∘ AlgEquiv.toAlgHom
 
-def galToMonoidEnd {K : Type*} [Field K] :
+def galToAlgEnd {K : Type*} [Field K] :
     Field.absoluteGaloisGroup K →* (AlgebraicClosure K →+* AlgebraicClosure K) where
   toFun := fun σ => σ.toAlgHom
-  map_one' := sorry
-  map_mul' := sorry
+  map_one' := rfl
+  map_mul' := fun _ _ => rfl
 
 noncomputable def tor_cyclotomic_character (K : Type*) [Field K] (l p : ℕ) [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p) (k : ℕ) :
     Field.absoluteGaloisGroup K →* (ZMod (Fintype.card (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K)))) :=
   endToPow.toMonoidHom.comp (
     (unitEndToRootsOfUnityEnd (⟨l, Fin.size_pos'⟩^k)).comp (
       monoidEndtoUnitEnd.comp (
-        ringEndToMonoidEnd.comp galToMonoidEnd
+        ringEndToMonoidEnd.comp galToAlgEnd
       )
     )
   )
@@ -571,6 +620,13 @@ def galToMulEnd' {K : Type*} [Field K] :
 --   -- rw [f]
 --   -- dsimp
 --   sorry
+
+def PadicInt.unitLift {p : ℕ} [hp_prime : Fact (Nat.Prime p)] {G : Type*} [Group G]
+  {f : (k : ℕ) → G →* ZMod (p ^ k)}
+    (f_compat :
+      ∀ (k1 k2 : ℕ) (hk : k1 ≤ k2),
+        RingHom.comp (ZMod.castHom ⋯ (ZMod (p ^ k1))) (f k2) = f k1) :
+          G →* ℤ_[p] := sorry
 
 noncomputable def cyclotomic_character (K : Type*) [Field K] (l p : ℕ) [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p) :
     Field.absoluteGaloisGroup K →* PadicInt l :=
