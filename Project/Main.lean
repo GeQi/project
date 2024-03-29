@@ -11,11 +11,13 @@ import Mathlib.NumberTheory.Padics.PadicIntegers
 import Mathlib.NumberTheory.Padics.RingHoms
 import Mathlib.RingTheory.RootsOfUnity.Basic
 
-set_option maxHeartbeats 0
+/-!
+Lemmas and where to put them?
+-/
 
--- Lemmas for various exsiting definitions
-
--- The exponent of a group divides the integral annihilating powers
+/-!
+The exponent of a group divides the integral annihilating powers
+-/
 @[to_additive (attr := simp)]
 theorem Group.exponent_dvd_of_forall_pow_eq_one (G : Type*) [Group G] (n : ℤ)
       (hG : ∀ (g : G), g ^ n = 1) :
@@ -42,7 +44,9 @@ theorem Group.exponent_dvd_of_forall_pow_eq_one (G : Type*) [Group G] (n : ℤ)
       exact Int.ofNat_dvd_left.mpr hhh
     exact Int.dvd_neg.mp hhhh
 
--- A lemma saying d ∈ (-n, n) and n ∣ d implies d = 0
+/-!
+d ∈ (-n, n) and n ∣ d implies d = 0
+-/
 lemma zero_of_bounded_divisor {d n : ℤ} (h1 : -n < d) (h2 : d < n) (h3 : n ∣ d): d = 0 := by
   obtain ⟨c, hc⟩ := h3
   rw [hc] at h1 h2
@@ -51,7 +55,9 @@ lemma zero_of_bounded_divisor {d n : ℤ} (h1 : -n < d) (h2 : d < n) (h3 : n ∣
   simp only [mul_zero] at hc
   exact hc
 
--- A lemma essentially saying if n ∣ a - b and 0 ≤ a, b < n, then a = b
+/-!
+if n ∣ a - b and 0 ≤ a, b < n, then a = b
+-/
 lemma zmod_val_sub_div_by_n_eq (n : ℕ) [nz: NeZero n] (a b : ZMod n) (h : (n : ℤ) ∣ (ZMod.val a - ZMod.val b)) :
     a = b := by
   have h1 : ZMod.val a < n := by apply ZMod.val_lt
@@ -95,12 +101,28 @@ lemma zmod_val_add_mod (n : ℕ) [NeZero n] (a b : ZMod n) :
   simp only [Int.ofNat_emod, Nat.cast_mul, EuclideanDomain.mod_eq_zero]
   exact Int.dvd_sub_of_emod_eq rfl
 
+lemma eq_smth'' {m n : ℕ} (h : m ∣ n) (x : ZMod n):
+    ZMod.val (ZMod.castHom h (ZMod m) x) = ZMod.val x % m := by
+      sorry
+    -- cases m
+    -- · have : n = 0 := Nat.eq_zero_of_zero_dvd h
+    --   simp only [Nat.zero_eq, ZMod.castHom_apply, Nat.mod_zero]
+    --   sorry
+    -- · sorry
 
--- Proper definition starts here
+lemma eq_smth {m n : ℕ} (h : m ∣ n) (x : ZMod n):
+    (m : ℤ) ∣ ZMod.val x - ZMod.val (ZMod.castHom h (ZMod m) x) := by
+  rw [eq_smth'']
+  exact Nat.modEq_iff_dvd.mp (Nat.mod_modEq (ZMod.val x) m)
 
--- automorphism group of a finite cyclic group of order n is isomorphic to (Z/n)*
--- `MonoidHom.map_cyclic` yields the quotient representative
--- First we need mod n well-definedness
+/-!
+# Endormorphisms of Cyclic Groups
+Defines
+
+automorphism group of a finite cyclic group of order n is isomorphic to (Z/n)*
+`MonoidHom.map_cyclic` yields the quotient representative
+First we need mod n well-definedness
+-/
 
 @[to_additive (attr := simp) is_endToIntMul]
 def is_endToIntPow {G : Type*} [Group G] (σ : G →* G) (n : ℤ) :=
@@ -123,7 +145,7 @@ def is_endToPow {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (
 
 @[to_additive (attr := simp)]
 lemma MonoidHom.map_cyclic_well_defined_mod_card {G : Type*} [Group G] [Fintype G] [h : IsCyclic G]
-    {σ : G →* G} {n m : ℤ} (hn : is_endToIntPow σ n) (hm : is_endToIntPow σ m) :
+    {σ : Monoid.End G} {n m : ℤ} (hn : is_endToIntPow σ n) (hm : is_endToIntPow σ m) :
       ((Fintype.card G) : ℤ) ∣ (n - m) := by
   have h : ∀ g : G, g ^ (n - m) = 1 := by
     intro g
@@ -356,19 +378,6 @@ def restrictEndtoSubgroup {G: Type*} [Group G]
   map_one' := rfl
   map_mul' := fun _ _ => rfl
 
-lemma eq_smth'' {m n : ℕ} (h : m ∣ n) (x : ZMod n):
-    ZMod.val (ZMod.castHom h (ZMod m) x) = ZMod.val x % m := by
-    cases n
-    · have : m = 0 := by
-        sorry
-      sorry
-    · sorry
-
-lemma eq_smth {m n : ℕ} (h : m ∣ n) (x : ZMod n):
-    (m : ℤ) ∣ ZMod.val x - ZMod.val (ZMod.castHom h (ZMod m) x) := by
-  rw [eq_smth'']
-  exact Nat.modEq_iff_dvd.mp (Nat.mod_modEq (ZMod.val x) m)
-
 @[to_additive (attr := simp) is_endToMul']
 def is_endToPow' {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :=
   ∀ g : G, σ g = g ^ (ZMod.val n)
@@ -470,11 +479,11 @@ def galToAlgEnd {K : Type*} [Field K] :
   map_one' := rfl
   map_mul' := fun _ _ => rfl
 
-lemma closure_has_full_rou (K : Type*) [Field K] {p l : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p) (k : ℕ) :
-    (Fintype.card (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K))) = l ^ k := by
-  apply IsPrimitiveRoot.card_rootsOfUnity
-  sorry
-  sorry
+-- lemma closure_has_full_rou (K : Type*) [Field K] {p l : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p) (k : ℕ) :
+--     (Fintype.card (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K))) = l ^ k := by
+--   apply IsPrimitiveRoot.card_rootsOfUnity
+--   sorry
+--   sorry
 
 noncomputable def ModularCyclotomicCharacter (R : Type*) [CommRing R] [IsDomain R] (n : ℕ+):
     Monoid.End R →* ZMod (Fintype.card (rootsOfUnity n R)) :=
@@ -491,16 +500,6 @@ lemma ModularCyclotomicCharacter_compat (R : Type*) [CommRing R] [IsDomain R] {n
   dsimp only [ModularCyclotomicCharacter]
   rw [← MonoidHom.comp_assoc, ← MonoidHom.comp_assoc, ← MonoidHom.comp_assoc, endToPow_compat_with_subgroup' (rootsOfUnity_le_of_dvd h)]
   rfl
-
-lemma roots_of_unity_sub_top (K : Type*) [Field K] {l : ℕ} [Fact (Nat.Prime l)] (k : ℕ) :
-  (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K)) ≤ ⊤ := fun _ _ => trivial
-
-def Subgroup.topEndEquiv {G : Type*} [Group G] :
-  Monoid.End (⊤ : Subgroup G) ≃* Monoid.End G := sorry
-
-def galToMulEnd' {K : Type*} [Field K] :
-    (Field.absoluteGaloisGroup K) →* Monoid.End (⊤ : Subgroup (AlgebraicClosure K)ˣ) := sorry
-
 
 def PadicInt.unitLift {p : ℕ} [hp_prime : Fact (Nat.Prime p)] {G : Type*} [Group G]
   {f : (k : ℕ) → G →* ZMod (p ^ k)}
