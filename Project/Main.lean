@@ -495,16 +495,16 @@ lemma modularCyclotomicCharacter_compat (R : Type*) [CommRing R] [IsDomain R] {n
   rfl
 
 /-!
-# p-adic Cyclotomic Character
+# TODO : p-adic Cyclotomic Character
 -/
 
-def PadicInt.unitLift {p : ℕ} [hp_prime : Fact (Nat.Prime p)] {G : Type*} [Group G]
-  {f : (k : ℕ) → G →* ZMod (p ^ k)}
-    (f_compat :
-      ∀ (k1 k2 : ℕ) (hk : k1 ≤ k2),
-        MonoidHom.comp (ZMod.castHom (Nat.pow_dvd_pow p hk) (ZMod (p ^ k1))) (f k2) = f k1) :
-          G →* ℤ_[p] := sorry
+-- def PadicInt.unitLift {p : ℕ} [hp_prime : Fact (Nat.Prime p)] {G : Type*} [Group G]
+--   {f : (k : ℕ) → G →* ZMod (p ^ k)}
+--     (f_compat :
+--       ∀ (k1 k2 : ℕ) (hk : k1 ≤ k2),
+--         MonoidHom.comp (ZMod.castHom (Nat.pow_dvd_pow p hk) (ZMod (p ^ k1))) (f k2) = f k1) :
+--           G →* ℤ_[p] := sorry
 
-noncomputable def cyclotomic_character (K : Type*) [Field K] (l p : ℕ) [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p) :
-    Field.absoluteGaloisGroup K →* PadicInt l :=
-  sorry
+-- noncomputable def cyclotomic_character (K : Type*) [Field K] (l p : ℕ) [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p) :
+--     Field.absoluteGaloisGroup K →* PadicInt l :=
+--   sorry
