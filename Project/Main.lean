@@ -101,13 +101,50 @@ lemma zmod_val_add_mod (n : ℕ) [NeZero n] (a b : ZMod n) :
   simp only [Int.ofNat_emod, Nat.cast_mul, EuclideanDomain.mod_eq_zero]
   exact Int.dvd_sub_of_emod_eq rfl
 
-lemma val_eqiv_val_of_residue' {m n : ℕ} (h : m ∣ n) (x : ZMod n):
-    ZMod.val (ZMod.castHom h (ZMod m) x) = ZMod.val x % m := by
-      sorry
+lemma gggdsfsdg {n : ℕ} (x : ZMod n) :
+    ZMod.val x = ZMod.val (ZMod.val x : ZMod n) := by
+  simp only [ZMod.val_nat_cast]
+  -- refine (Nat.mod_eq_of_lt ?h).symm
+  if hn : n = 0 then
+    simp only [hn, Nat.mod_zero]
+  else
+    refine (Nat.mod_eq_of_lt ?h).symm
+    letI : NeZero n := { out := hn }
+    exact ZMod.val_lt x
 
-lemma val_eqiv_val_of_residue {m n : ℕ} (h : m ∣ n) (x : ZMod n):
+lemma gggg {n : ℕ} (x : ZMod n) (h : n > 0):
+    x = (ZMod.val x) := by
+  letI : NeZero n := NeZero.of_pos h
+  refine zmod_val_sub_div_by_n_eq n x ↑(ZMod.val x) ?h
+  rw [gggdsfsdg x]
+  simp only [ZMod.nat_cast_val, ZMod.cast_id', id_eq, sub_self, dvd_zero]
+
+lemma ttt {m n : ℕ} (x : ZMod n) (hh : m > 0) :
+    ∃ k l : ℕ,  ZMod.val x = k * m + l ∧ l < m := by
+  let k := ZMod.val x / m
+  let l := ZMod.val x % m
+  use k, l
+  constructor
+  · exact (Nat.div_add_mod' (ZMod.val x) m).symm
+  · exact Nat.mod_lt (ZMod.val x) hh
+
+lemma coesss {m n : ℕ} (h : m ∣ n) (x : ℕ) :
+    ZMod.castHom h (ZMod m) x = x := map_natCast (ZMod.castHom h (ZMod m)) x
+
+lemma asdqwe {a m n : ℕ} (h : m ∣ n) :
+    a % m = a % n % m := by
+  exact (Nat.mod_mod_of_dvd a h).symm
+
+lemma val_eqiv_val_of_residue' {m n : ℕ} (h : m ∣ n) (x : ZMod n) (hn : n > 0):
+    ZMod.val (ZMod.castHom h (ZMod m) x) = ZMod.val x % m := by
+  rw [gggg x hn]
+  rw [coesss]
+  simp only [CharP.cast_eq_zero, mul_zero, zero_add, ZMod.val_nat_cast]
+  exact (Nat.mod_mod_of_dvd _ h).symm
+
+lemma val_eqiv_val_of_residue {m n : ℕ} (h : m ∣ n) (x : ZMod n) (hn : n > 0):
     (m : ℤ) ∣ ZMod.val x - ZMod.val (ZMod.castHom h (ZMod m) x) := by
-  rw [val_eqiv_val_of_residue']
+  rw [val_eqiv_val_of_residue' h x hn]
   exact Nat.modEq_iff_dvd.mp (Nat.mod_modEq (ZMod.val x) m)
 
 /-!
@@ -398,7 +435,7 @@ lemma is_endToPow_of_residue_res_subgroup {G: Type*} [Group G] {H H' : Subgroup 
   apply congrArg (Subgroup.inclusion h)
   apply pow_eq_pow_of_order_dvd_dif
   rw [IsCyclic.exponent_eq_card]
-  apply val_eqiv_val_of_residue
+  apply val_eqiv_val_of_residue _ _ Fintype.card_pos
 
 -- TODO : additive version
 @[simp]
