@@ -380,7 +380,7 @@ lemma end_restict_to_cyclic_subgroup {G: Type*} [Group G] {H H' : Subgroup G} [I
   exact Subgroup.zpow.proof_1 H' x n
 
 @[simp]
-def restrictEndtoSubgroup {G: Type*} [Group G]
+def restrictEndtoSubgroup' {G: Type*} [Group G]
     {H H' : Subgroup G} [IsCyclic H]
       (h : H' ≤ H) (σ : Monoid.End H) : Monoid.End H' where
   toFun := fun x => ⟨σ (SubgroupClass.inclusion h x), end_restict_to_cyclic_subgroup h σ x⟩
@@ -389,6 +389,15 @@ def restrictEndtoSubgroup {G: Type*} [Group G]
   map_mul' := by
     simp only [map_mul, Submonoid.coe_mul, Subgroup.coe_toSubmonoid, Submonoid.mk_mul_mk,
       Subtype.forall, implies_true, forall_const]
+
+@[simp]
+def restrictEndtoSubgroup {G: Type*} [Group G]
+    {H H' : Subgroup G} [IsCyclic H]
+      (h : H' ≤ H) :
+        Monoid.End H →* Monoid.End H' where
+  toFun := fun σ => restrictEndtoSubgroup' h σ
+  map_one' := rfl
+  map_mul' := fun _ _ => rfl
 
 -- @[to_additive (attr := simp) inst_this']
 -- noncomputable
@@ -401,12 +410,15 @@ def restrictEndtoSubgroup {G: Type*} [Group G]
 
 lemma eq_smth'' {m n : ℕ} (h : m ∣ n) (x : ZMod n):
     ZMod.val (ZMod.castHom h (ZMod m) x) = ZMod.val x % m := by
-  match n with
-  | 0 => sorry
-  | k+1 => sorry
+    cases n
+    · have : m = 0 := by
+        sorry
+      sorry
+    · sorry
 
 lemma eq_smth {m n : ℕ} (h : m ∣ n) (x : ZMod n):
     (m : ℤ) ∣ ZMod.val x - ZMod.val (ZMod.castHom h (ZMod m) x) := by
+  -- refine Nat.ModEq.dvd ?_
   rw [eq_smth'']
   exact Nat.modEq_iff_dvd.mp (Nat.mod_modEq (ZMod.val x) m)
 
@@ -420,68 +432,77 @@ lemma eq_smth {m n : ℕ} (h : m ∣ n) (x : ZMod n):
 --   apply is_endToPow_endToPowFun
 
 
-lemma subgroup_card_div_card {G: Type*} [Group G]
-    {H H' : Subgroup G} [Fintype H] [Fintype H'] (h : H' ≤ H) :
-      Fintype.card H' ∣ Fintype.card H := by
-  sorry
+@[to_additive (attr := simp) is_endToMul']
+def is_endToPow' {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :=
+  ∀ g : G, σ g = g ^ (ZMod.val n)
 
-def is_endToPow'
+@[to_additive (attr := simp) is_endToMul_iff_is_endToMul']
+lemma is_endToPow_iff_is_endToPow' {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :
+    is_endToPow σ n ↔ is_endToPow' σ n := by
+  simp only [is_endToPow, is_endToIntPow, is_endToPow', zpow_natCast]
 
-def www (G : Type*) [Group G] [Fintype G] [IsCyclic G] (σ : Monoid.End G) :
-    ∀ g : G, σ g = g ^ (ZMod.val (endToPow σ)) := by
-  intro g
-  rw [← zpow_natCast]
-  apply is_endToPow_endToPowFun
+-- def www (G : Type*) [Group G] [Fintype G] [IsCyclic G] (σ : Monoid.End G) :
+--     ∀ g : G, σ g = g ^ (ZMod.val (endToPow σ)) := by
+--   intro g
+--   rw [← zpow_natCast]
+--   apply is_endToPow_endToPowFun
 
 
-def test (G : Type*) [Group G] (H H' : Subgroup G) (h: H ≤ H') (a b : H) (hh : Subgroup.inclusion h a = Subgroup.inclusion h b) :
-    a = b := by
-  ext
-  #check Subtype.ext_iff_val
-  #check Subtype.ext_iff
+-- def test (G : Type*) [Group G] (H H' : Subgroup G) (h: H ≤ H') (a b : H) (hh : Subgroup.inclusion h a = Subgroup.inclusion h b) :
+--     a = b := by
+--   apply Subgroup.inclusion_injective h
+--   exact hh
+--   -- ext
+--   -- #check Subtype.ext_iff_val
+--   -- #check Subtype.ext_iff
+
+-- def tettt (A : Type*) (f : A → A) (a b : A) (h: a= b) : f a = f b := by
+--   exact congrArg f h
 
 @[simp]
-lemma is_endToPow_of_residue_res_subgroup {G: Type*} [Group G] (H H' : Subgroup G)
+lemma is_endToPow_of_residue_res_subgroup {G: Type*} [Group G] {H H' : Subgroup G}
       [Fintype H] [IsCyclic H]
         [Fintype H'] [IsCyclic H']
-          (σ : Monoid.End H) (h : H' ≤ H) :
+          (h : H' ≤ H) (σ : Monoid.End H):
     is_endToPow (restrictEndtoSubgroup h σ)
-      (ZMod.castHom (subgroup_card_div_card h) (ZMod (Fintype.card H')) (endToPow σ)) := by
+      (ZMod.castHom (Subgroup.card_dvd_of_le h) (ZMod (Fintype.card H')) (endToPow σ)) := by
   intro g
-  have : Subgroup.inclusion h ((restrictEndtoSubgroup h σ) g) = σ (Subgroup.inclusion h g) := by
+  apply Subgroup.inclusion_injective h
+  have this : Subgroup.inclusion h ((restrictEndtoSubgroup h σ) g) = σ (Subgroup.inclusion h g) := by
     rfl
-
-  change (Subgroup.inclusion h) (restrictEndtoSubgroup h σ g) = (Subgroup.inclusion h) (g ^ ↑(ZMod.val ((ZMod.castHom _ (ZMod (Fintype.card ↥H'))) (endToPow σ))))
-
-  sorry
-  obtain ⟨n, hn⟩ := exists_endToPow σ
-  -- rw [is_endToPow_endToPowFun]
-  -- rw [← is_endToPow_equal_endToPowFun]
-  simp only [restrictEndtoSubgroup]
-  -- obtain ⟨n, hn⟩ := exists_endToPow σ
-  -- apply Subtype.coe_eq_of_eq_mk
-  -- rw [hn]
-  -- sorry
-  -- simp only [restrictEndtoSubgroup, MonoidHom.coe_mk, OneHom.coe_mk, endToPow, MulEquiv.coe_mk,
-  --   Equiv.coe_fn_mk, endToPowFun, is_endToPow, ZMod.nat_cast_val, is_endToIntPow, Subtype.forall,
-  --   ZMod.castHom_apply]
-  apply Subtype.coe_eq_of_eq_mk
-  dsimp only [restrictEndtoSubgroup, MonoidHom.coe_mk, OneHom.coe_mk, endToPow, MulEquiv.coe_mk,
-    Equiv.coe_fn_mk, endToPowFun, is_endToPow, is_endToIntPow]
-  rw [hn]
-  have : (SubgroupClass.inclusion h g) ^ (ZMod.val n : ℤ) = (SubgroupClass.inclusion h) (g ^ (ZMod.val n)) := by
-    sorry
   rw [this]
-  have this2 : ((SubgroupClass.inclusion h) (g ^ ZMod.val n) : G) = g ^ ZMod.val n := by
-    exact rfl
-  rw [this2]
+  have this' : σ (Subgroup.inclusion h g) = (Subgroup.inclusion h g) ^ ((ZMod.val (endToPow σ)) : ℤ) := by
+    apply is_endToPow_endToPowFun
+  rw [this']
+  have this'' : (Subgroup.inclusion h) g ^ (ZMod.val (endToPow σ) : ℤ) = (Subgroup.inclusion h) (g ^ (ZMod.val (endToPow σ) : ℤ)) := by
+    rfl
+  rw [this'']
+  apply congrArg (Subgroup.inclusion h)
+  apply pow_eq_pow_of_order_dvd_dif
+  rw [IsCyclic.exponent_eq_card]
+  apply eq_smth
 
-  -- rw [SubgroupClass.inclusion_self]
-  -- apply pow_eq_pow_of_order_dvd_dif
-  -- rw [IsCyclic.exponent_eq_card]
-  -- -- apply eq_smth''
-  -- apply [eq_smth (subgroup_card_div_card h) _]
-  sorry
+@[simp]
+lemma endToPow_compat_with_subgroup {G: Type*} [Group G] {H H' : Subgroup G}
+      [Fintype H] [IsCyclic H]
+        [Fintype H'] [IsCyclic H']
+          (h : H' ≤ H) :
+    ((ZMod.castHom (Subgroup.card_dvd_of_le h) (ZMod (Fintype.card H'))) ∘ endToPow)
+      = endToPow ∘ (restrictEndtoSubgroup h) := by
+  ext
+  apply is_endToPow_equal_endToPowFun
+  apply is_endToPow_of_residue_res_subgroup
+
+@[simp]
+lemma endToPow_compat_with_subgroup' {G: Type*} [Group G] {H H' : Subgroup G}
+      [Fintype H] [IsCyclic H]
+        [Fintype H'] [IsCyclic H']
+          (h : H' ≤ H) :
+    MonoidHom.comp (ZMod.castHom (Subgroup.card_dvd_of_le h) (ZMod (Fintype.card H'))) endToPow.toMonoidHom
+      = endToPow.toMonoidHom.comp (restrictEndtoSubgroup h):= by
+  ext
+  apply is_endToPow_equal_endToPowFun
+  apply is_endToPow_of_residue_res_subgroup
 
 -- @[simp]
 -- lemma endToPow_compat_with_subgroup {G: Type*} [Group G] [Fintype G] [IsCyclic G] (H : Subgroup G) :
@@ -560,28 +581,47 @@ def galToAlgEnd {K : Type*} [Field K] :
   map_one' := rfl
   map_mul' := fun _ _ => rfl
 
-noncomputable def tor_cyclotomic_character (K : Type*) [Field K] (l p : ℕ) [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p) (k : ℕ) :
-    Field.absoluteGaloisGroup K →* (ZMod (Fintype.card (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K)))) :=
-  endToPow.toMonoidHom.comp (
-    (unitEndToRootsOfUnityEnd (⟨l, Fin.size_pos'⟩^k)).comp (
-      monoidEndtoUnitEnd.comp (
-        ringEndToMonoidEnd.comp galToAlgEnd
-      )
-    )
-  )
+lemma closure_has_full_rou (K : Type*) [Field K] {p l : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p) (k : ℕ) :
+    (Fintype.card (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K))) = l ^ k := by
+  apply IsPrimitiveRoot.card_rootsOfUnity
+  sorry
+  sorry
+
+noncomputable def ModularCyclotomicCharacter (R : Type*) [CommRing R] [IsDomain R] (n : ℕ+):
+    Monoid.End R →* ZMod (Fintype.card (rootsOfUnity n R)) :=
+  endToPow.toMonoidHom.comp <| (unitEndToRootsOfUnityEnd n).comp monoidEndtoUnitEnd
+
+lemma rootsOfUnity_card_dvd_of_dvd (R : Type*) [CommRing R] [IsDomain R] {n m : ℕ+} (h : n ∣ m):
+    Fintype.card (rootsOfUnity n R) ∣ Fintype.card (rootsOfUnity m R) :=
+  Subgroup.card_dvd_of_le <| @rootsOfUnity_le_of_dvd R _ _ _ h
+
+lemma ModularCyclotomicCharacter_compat (R : Type*) [CommRing R] [IsDomain R] {n m : ℕ+} (h : n ∣ m) :
+    MonoidHom.comp (ZMod.castHom (rootsOfUnity_card_dvd_of_dvd R h) (ZMod (Fintype.card (rootsOfUnity n R))))
+      (ModularCyclotomicCharacter R m) =
+        (ModularCyclotomicCharacter R n) := by
+  dsimp only [ModularCyclotomicCharacter]
+  rw [← MonoidHom.comp_assoc, ← MonoidHom.comp_assoc, ← MonoidHom.comp_assoc, endToPow_compat_with_subgroup' (rootsOfUnity_le_of_dvd h)]
+  rfl
+
+-- noncomputable def tor_cyclotomic_character (K : Type*) [Field K] (l : ℕ) [Fact (Nat.Prime l)] (k : ℕ) :
+--     Field.absoluteGaloisGroup K →* (ZMod (Fintype.card (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K)))) :=
+--   endToPow.toMonoidHom.comp (
+--     (unitEndToRootsOfUnityEnd (⟨l, Fin.size_pos'⟩^k)).comp (
+--       monoidEndtoUnitEnd.comp (
+--         ringEndToMonoidEnd.comp galToAlgEnd
+--       )
+--     )
+--   )
 
 -- lemma root_of_unity_sub (K : Type*) [Field K] {l p : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p)
 --       (k : ℕ) :
 --     (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K)) ≤ (AlgebraicClosure K)ˣ := by
 --   sorry
 
-lemma roots_of_unity_sub_rel (K : Type*) [Field K] (l : ℕ) [Fact (Nat.Prime l)]
-      {k1 k2 : ℕ} (hk : k1 ≤ k2) :
-    (rootsOfUnity (⟨l, Fin.size_pos'⟩^k1) (AlgebraicClosure K)) ≤ (rootsOfUnity (⟨l, Fin.size_pos'⟩^k2) (AlgebraicClosure K)) := by
-  sorry
+
 
 lemma roots_of_unity_sub_top (K : Type*) [Field K] {l : ℕ} [Fact (Nat.Prime l)] (k : ℕ) :
-  (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K)) ≤ ⊤ := fun ⦃x⦄ a ↦ trivial
+  (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K)) ≤ ⊤ := fun _ _ => trivial
 
 def Subgroup.topEndEquiv {G : Type*} [Group G] :
   Monoid.End (⊤ : Subgroup G) ≃* Monoid.End G := sorry
@@ -621,13 +661,28 @@ def galToMulEnd' {K : Type*} [Field K] :
 --   -- dsimp
 --   sorry
 
+-- def hhh (k1 k2 p : ℕ) (hk : k1 ≤ k2) :
+--   p^k1 ∣ p^k2 := Nat.pow_dvd_pow p hk
+
+/--
+`limNthHom f_compat r` is the limit of a sequence `f` of compatible ring homs `R →+* ZMod (p^k)`.
+This is itself a ring hom: see `PadicInt.lift`.
+-/
+-- def limNthHom (g : G) : ℤ_[p] :=
+--   ofIntSeq (nthHom f r) (isCauSeq_nthHom f_compat r)
+
+-- def f : (k : ℕ) → G →* ZMod (p ^ k) := sorry
+
 def PadicInt.unitLift {p : ℕ} [hp_prime : Fact (Nat.Prime p)] {G : Type*} [Group G]
   {f : (k : ℕ) → G →* ZMod (p ^ k)}
     (f_compat :
       ∀ (k1 k2 : ℕ) (hk : k1 ≤ k2),
-        RingHom.comp (ZMod.castHom ⋯ (ZMod (p ^ k1))) (f k2) = f k1) :
+        MonoidHom.comp (ZMod.castHom (Nat.pow_dvd_pow p hk) (ZMod (p ^ k1))) (f k2) = f k1) :
           G →* ℤ_[p] := sorry
 
 noncomputable def cyclotomic_character (K : Type*) [Field K] (l p : ℕ) [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p) :
     Field.absoluteGaloisGroup K →* PadicInt l :=
   sorry
+
+
+#check PadicInt.lift
