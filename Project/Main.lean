@@ -358,34 +358,41 @@ lemma end_restict_to_cyclic_subgroup {G: Type*} [Group G] {H H' : Subgroup G} [I
   simp only [SubgroupClass.coe_zpow, SubgroupClass.coe_inclusion]
   exact Subgroup.zpow.proof_1 H' x n
 
-@[simp]
-def restrictEndtoSubgroup' {G: Type*} [Group G]
-    {H H' : Subgroup G} [IsCyclic H]
-      (h : H' ≤ H) (σ : Monoid.End H) : Monoid.End H' where
-  toFun := fun x => ⟨σ (SubgroupClass.inclusion h x), end_restict_to_cyclic_subgroup h σ x⟩
-  map_one' := by
-    simp only [map_one, OneMemClass.coe_one, Submonoid.mk_eq_one]
-  map_mul' := by
-    simp only [map_mul, Submonoid.coe_mul, Subgroup.coe_toSubmonoid, Submonoid.mk_mul_mk,
-      Subtype.forall, implies_true, forall_const]
+-- @[simp]
+-- def restrictEndtoSubgroup' {G: Type*} [Group G]
+--     {H H' : Subgroup G} [IsCyclic H]
+--       (h : H' ≤ H) (σ : Monoid.End H) : Monoid.End H' where
+--   toFun := fun x => ⟨σ (SubgroupClass.inclusion h x), end_restict_to_cyclic_subgroup h σ x⟩
+--   map_one' := by
+--     simp only [map_one, OneMemClass.coe_one, Submonoid.mk_eq_one]
+--   map_mul' := by
+--     simp only [map_mul, Submonoid.coe_mul, Subgroup.coe_toSubmonoid, Submonoid.mk_mul_mk,
+--       Subtype.forall, implies_true, forall_const]
 
 @[simp]
 def restrictEndtoSubgroup {G: Type*} [Group G]
     {H H' : Subgroup G} [IsCyclic H]
       (h : H' ≤ H) :
         Monoid.End H →* Monoid.End H' where
-  toFun := fun σ => restrictEndtoSubgroup' h σ
+  toFun := fun σ => {
+    toFun := fun x => ⟨σ (SubgroupClass.inclusion h x), end_restict_to_cyclic_subgroup h σ x⟩
+    map_one' := by
+      simp only [map_one, OneMemClass.coe_one, Submonoid.mk_eq_one]
+    map_mul' := by
+      simp only [map_mul, Submonoid.coe_mul, Subgroup.coe_toSubmonoid, Submonoid.mk_mul_mk,
+        Subtype.forall, implies_true, forall_const]
+  }
   map_one' := rfl
   map_mul' := fun _ _ => rfl
 
-@[to_additive (attr := simp) is_endToMul']
-def is_endToPow' {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :=
-  ∀ g : G, σ g = g ^ (ZMod.val n)
+-- @[to_additive (attr := simp) is_endToMul']
+-- def is_endToPow' {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :=
+--   ∀ g : G, σ g = g ^ (ZMod.val n)
 
-@[to_additive (attr := simp) is_endToMul_iff_is_endToMul']
-lemma is_endToPow_iff_is_endToPow' {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :
-    is_endToPow σ n ↔ is_endToPow' σ n := by
-  simp only [is_endToPow, is_endToIntPow, is_endToPow', zpow_natCast]
+-- @[to_additive (attr := simp) is_endToMul_iff_is_endToMul']
+-- lemma is_endToPow_iff_is_endToPow' {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :
+--     is_endToPow σ n ↔ is_endToPow' σ n := by
+--   simp only [is_endToPow, is_endToIntPow, is_endToPow', zpow_natCast]
 
 @[simp]
 lemma is_endToPow_of_residue_res_subgroup {G: Type*} [Group G] {H H' : Subgroup G}
@@ -410,19 +417,19 @@ lemma is_endToPow_of_residue_res_subgroup {G: Type*} [Group G] {H H' : Subgroup 
   rw [IsCyclic.exponent_eq_card]
   apply eq_smth
 
-@[simp]
-lemma endToPow_compat_with_subgroup {G: Type*} [Group G] {H H' : Subgroup G}
-      [Fintype H] [IsCyclic H]
-        [Fintype H'] [IsCyclic H']
-          (h : H' ≤ H) :
-    ((ZMod.castHom (Subgroup.card_dvd_of_le h) (ZMod (Fintype.card H'))) ∘ endToPow)
-      = endToPow ∘ (restrictEndtoSubgroup h) := by
-  ext
-  apply is_endToPow_equal_endToPowFun
-  apply is_endToPow_of_residue_res_subgroup
+-- @[simp]
+-- lemma endToPow_compat_with_subgroup {G: Type*} [Group G] {H H' : Subgroup G}
+--       [Fintype H] [IsCyclic H]
+--         [Fintype H'] [IsCyclic H']
+--           (h : H' ≤ H) :
+--     ((ZMod.castHom (Subgroup.card_dvd_of_le h) (ZMod (Fintype.card H'))) ∘ endToPow)
+--       = endToPow ∘ (restrictEndtoSubgroup h) := by
+--   ext
+--   apply is_endToPow_equal_endToPowFun
+--   apply is_endToPow_of_residue_res_subgroup
 
 @[simp]
-lemma endToPow_compat_with_subgroup' {G: Type*} [Group G] {H H' : Subgroup G}
+lemma endToPow_compat_with_subgroup {G: Type*} [Group G] {H H' : Subgroup G}
       [Fintype H] [IsCyclic H]
         [Fintype H'] [IsCyclic H']
           (h : H' ≤ H) :
@@ -469,21 +476,15 @@ def unitEndToRootsOfUnityEnd (k : ℕ+) {M : Type*} [CommMonoid M]:
     map_one' := rfl
     map_mul' := fun _ _ => rfl
 
-def ringEndToMonoidEnd {R : Type*} [CommRing R] :
-    (R →+* R) →* Monoid.End R :=
-  MulDistribMulAction.toMonoidEnd (R →+* R) R
+-- def ringEndToMonoidEnd {R : Type*} [CommRing R] :
+--     (R →+* R) →* Monoid.End R :=
+--   MulDistribMulAction.toMonoidEnd (R →+* R) R
 
-def galToAlgEnd {K : Type*} [Field K] :
-    Field.absoluteGaloisGroup K →* (AlgebraicClosure K →+* AlgebraicClosure K) where
-  toFun := fun σ => σ.toAlgHom
-  map_one' := rfl
-  map_mul' := fun _ _ => rfl
-
--- lemma closure_has_full_rou (K : Type*) [Field K] {p l : ℕ} [CharP K p] [Fact (Nat.Prime l)] (h : l ≠ p) (k : ℕ) :
---     (Fintype.card (rootsOfUnity (⟨l, Fin.size_pos'⟩^k) (AlgebraicClosure K))) = l ^ k := by
---   apply IsPrimitiveRoot.card_rootsOfUnity
---   sorry
---   sorry
+-- def galToAlgEnd {K : Type*} [Field K] :
+--     Field.absoluteGaloisGroup K →* (AlgebraicClosure K →+* AlgebraicClosure K) where
+--   toFun := fun σ => σ.toAlgHom
+--   map_one' := rfl
+--   map_mul' := fun _ _ => rfl
 
 noncomputable def ModularCyclotomicCharacter (R : Type*) [CommRing R] [IsDomain R] (n : ℕ+):
     Monoid.End R →* ZMod (Fintype.card (rootsOfUnity n R)) :=
@@ -498,7 +499,7 @@ lemma ModularCyclotomicCharacter_compat (R : Type*) [CommRing R] [IsDomain R] {n
       (ModularCyclotomicCharacter R m) =
         (ModularCyclotomicCharacter R n) := by
   dsimp only [ModularCyclotomicCharacter]
-  rw [← MonoidHom.comp_assoc, ← MonoidHom.comp_assoc, ← MonoidHom.comp_assoc, endToPow_compat_with_subgroup' (rootsOfUnity_le_of_dvd h)]
+  rw [← MonoidHom.comp_assoc, ← MonoidHom.comp_assoc, ← MonoidHom.comp_assoc, endToPow_compat_with_subgroup (rootsOfUnity_le_of_dvd h)]
   rfl
 
 def PadicInt.unitLift {p : ℕ} [hp_prime : Fact (Nat.Prime p)] {G : Type*} [Group G]
