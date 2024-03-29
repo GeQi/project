@@ -101,18 +101,13 @@ lemma zmod_val_add_mod (n : ℕ) [NeZero n] (a b : ZMod n) :
   simp only [Int.ofNat_emod, Nat.cast_mul, EuclideanDomain.mod_eq_zero]
   exact Int.dvd_sub_of_emod_eq rfl
 
-lemma eq_smth'' {m n : ℕ} (h : m ∣ n) (x : ZMod n):
+lemma val_eqiv_val_of_residue' {m n : ℕ} (h : m ∣ n) (x : ZMod n):
     ZMod.val (ZMod.castHom h (ZMod m) x) = ZMod.val x % m := by
       sorry
-    -- cases m
-    -- · have : n = 0 := Nat.eq_zero_of_zero_dvd h
-    --   simp only [Nat.zero_eq, ZMod.castHom_apply, Nat.mod_zero]
-    --   sorry
-    -- · sorry
 
-lemma eq_smth {m n : ℕ} (h : m ∣ n) (x : ZMod n):
+lemma val_eqiv_val_of_residue {m n : ℕ} (h : m ∣ n) (x : ZMod n):
     (m : ℤ) ∣ ZMod.val x - ZMod.val (ZMod.castHom h (ZMod m) x) := by
-  rw [eq_smth'']
+  rw [val_eqiv_val_of_residue']
   exact Nat.modEq_iff_dvd.mp (Nat.mod_modEq (ZMod.val x) m)
 
 /-!
@@ -142,6 +137,11 @@ def is_endToPow {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (
 --       (σ : G →* G) (n : ZMod (Fintype.card G)) :
 --         is_endToPow σ n ↔ is_endToIntPow σ (ZMod.val n) := by
 --   simp only [is_endToPow]
+
+-- @[to_additive (attr := simp) is_endToMul_iff_is_endToMul']
+-- lemma is_endToPow_iff_is_endToPow' {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :
+--     is_endToPow σ n ↔ is_endToPow' σ n := by
+--   simp only [is_endToPow, is_endToIntPow, is_endToPow', zpow_natCast]
 
 @[to_additive (attr := simp)]
 lemma MonoidHom.map_cyclic_well_defined_mod_card {G : Type*} [Group G] [Fintype G] [h : IsCyclic G]
@@ -349,6 +349,7 @@ noncomputable def endToMul {G : Type*} [AddGroup G] [Fintype G] [IsAddCyclic G] 
     map_mul' := endToMul_map_mul
     map_add' := endToMul_map_add
 
+-- TODO : additive version
 -- @[to_additive (attr := simp) end_restict_to_cyclic_subgroup']
 lemma end_restict_to_cyclic_subgroup {G: Type*} [Group G] {H H' : Subgroup G} [IsCyclic H]
       (h : H' ≤ H) (σ : Monoid.End H) (x : H') :
@@ -358,17 +359,7 @@ lemma end_restict_to_cyclic_subgroup {G: Type*} [Group G] {H H' : Subgroup G} [I
   simp only [SubgroupClass.coe_zpow, SubgroupClass.coe_inclusion]
   exact Subgroup.zpow.proof_1 H' x n
 
--- @[simp]
--- def restrictEndtoSubgroup' {G: Type*} [Group G]
---     {H H' : Subgroup G} [IsCyclic H]
---       (h : H' ≤ H) (σ : Monoid.End H) : Monoid.End H' where
---   toFun := fun x => ⟨σ (SubgroupClass.inclusion h x), end_restict_to_cyclic_subgroup h σ x⟩
---   map_one' := by
---     simp only [map_one, OneMemClass.coe_one, Submonoid.mk_eq_one]
---   map_mul' := by
---     simp only [map_mul, Submonoid.coe_mul, Subgroup.coe_toSubmonoid, Submonoid.mk_mul_mk,
---       Subtype.forall, implies_true, forall_const]
-
+-- TODO : additive version
 @[simp]
 def restrictEndtoSubgroup {G: Type*} [Group G]
     {H H' : Subgroup G} [IsCyclic H]
@@ -385,15 +376,7 @@ def restrictEndtoSubgroup {G: Type*} [Group G]
   map_one' := rfl
   map_mul' := fun _ _ => rfl
 
--- @[to_additive (attr := simp) is_endToMul']
--- def is_endToPow' {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :=
---   ∀ g : G, σ g = g ^ (ZMod.val n)
-
--- @[to_additive (attr := simp) is_endToMul_iff_is_endToMul']
--- lemma is_endToPow_iff_is_endToPow' {G : Type*} [Group G] [Fintype G] [IsCyclic G] (σ : G →* G) (n : ZMod (Fintype.card G)) :
---     is_endToPow σ n ↔ is_endToPow' σ n := by
---   simp only [is_endToPow, is_endToIntPow, is_endToPow', zpow_natCast]
-
+-- TODO : additive version
 @[simp]
 lemma is_endToPow_of_residue_res_subgroup {G: Type*} [Group G] {H H' : Subgroup G}
       [Fintype H] [IsCyclic H]
@@ -415,19 +398,9 @@ lemma is_endToPow_of_residue_res_subgroup {G: Type*} [Group G] {H H' : Subgroup 
   apply congrArg (Subgroup.inclusion h)
   apply pow_eq_pow_of_order_dvd_dif
   rw [IsCyclic.exponent_eq_card]
-  apply eq_smth
+  apply val_eqiv_val_of_residue
 
--- @[simp]
--- lemma endToPow_compat_with_subgroup {G: Type*} [Group G] {H H' : Subgroup G}
---       [Fintype H] [IsCyclic H]
---         [Fintype H'] [IsCyclic H']
---           (h : H' ≤ H) :
---     ((ZMod.castHom (Subgroup.card_dvd_of_le h) (ZMod (Fintype.card H'))) ∘ endToPow)
---       = endToPow ∘ (restrictEndtoSubgroup h) := by
---   ext
---   apply is_endToPow_equal_endToPowFun
---   apply is_endToPow_of_residue_res_subgroup
-
+-- TODO : additive version
 @[simp]
 lemma endToPow_compat_with_subgroup {G: Type*} [Group G] {H H' : Subgroup G}
       [Fintype H] [IsCyclic H]
@@ -439,6 +412,11 @@ lemma endToPow_compat_with_subgroup {G: Type*} [Group G] {H H' : Subgroup G}
   apply is_endToPow_equal_endToPowFun
   apply is_endToPow_of_residue_res_subgroup
 
+/-!
+# Modular Cyclotomic Character
+-/
+
+-- TODO : maybe genralize?
 def monoidEndtoUnitEnd {M : Type*} [CommMonoid M]:
   Monoid.End M →* Monoid.End Mˣ where
     toFun := fun σ => {
@@ -476,16 +454,6 @@ def unitEndToRootsOfUnityEnd (k : ℕ+) {M : Type*} [CommMonoid M]:
     map_one' := rfl
     map_mul' := fun _ _ => rfl
 
--- def ringEndToMonoidEnd {R : Type*} [CommRing R] :
---     (R →+* R) →* Monoid.End R :=
---   MulDistribMulAction.toMonoidEnd (R →+* R) R
-
--- def galToAlgEnd {K : Type*} [Field K] :
---     Field.absoluteGaloisGroup K →* (AlgebraicClosure K →+* AlgebraicClosure K) where
---   toFun := fun σ => σ.toAlgHom
---   map_one' := rfl
---   map_mul' := fun _ _ => rfl
-
 noncomputable def ModularCyclotomicCharacter (R : Type*) [CommRing R] [IsDomain R] (n : ℕ+):
     Monoid.End R →* ZMod (Fintype.card (rootsOfUnity n R)) :=
   endToPow.toMonoidHom.comp <| (unitEndToRootsOfUnityEnd n).comp monoidEndtoUnitEnd
@@ -494,13 +462,17 @@ lemma rootsOfUnity_card_dvd_of_dvd (R : Type*) [CommRing R] [IsDomain R] {n m : 
     Fintype.card (rootsOfUnity n R) ∣ Fintype.card (rootsOfUnity m R) :=
   Subgroup.card_dvd_of_le <| @rootsOfUnity_le_of_dvd R _ _ _ h
 
-lemma ModularCyclotomicCharacter_compat (R : Type*) [CommRing R] [IsDomain R] {n m : ℕ+} (h : n ∣ m) :
+lemma modularCyclotomicCharacter_compat (R : Type*) [CommRing R] [IsDomain R] {n m : ℕ+} (h : n ∣ m) :
     MonoidHom.comp (ZMod.castHom (rootsOfUnity_card_dvd_of_dvd R h) (ZMod (Fintype.card (rootsOfUnity n R))))
       (ModularCyclotomicCharacter R m) =
         (ModularCyclotomicCharacter R n) := by
   dsimp only [ModularCyclotomicCharacter]
   rw [← MonoidHom.comp_assoc, ← MonoidHom.comp_assoc, ← MonoidHom.comp_assoc, endToPow_compat_with_subgroup (rootsOfUnity_le_of_dvd h)]
   rfl
+
+/-!
+# p-adic Cyclotomic Character
+-/
 
 def PadicInt.unitLift {p : ℕ} [hp_prime : Fact (Nat.Prime p)] {G : Type*} [Group G]
   {f : (k : ℕ) → G →* ZMod (p ^ k)}
