@@ -7,7 +7,7 @@
 		"dockerfile": "Dockerfile"
 	},
 	
-	"postCreateCommand": "lake exe cache get && lake build",
+	"onCreateCommand": "lake exe cache get && lake build",
 
 	"customizations": {
 		"vscode" : {
