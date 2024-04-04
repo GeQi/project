@@ -14,6 +14,7 @@ import Mathlib.RingTheory.RootsOfUnity.Basic
 /-!
 Lemmas and where to put them?
 -/
+-- aaa,mm,
 
 /-!
 The exponent of a group divides the integral annihilating powers
