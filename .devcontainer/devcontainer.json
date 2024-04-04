@@ -2,29 +2,16 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/debian
 {
 	"name": "Debian",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/base:bullseye",
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	"features": {
-		"ghcr.io/devcontainers-contrib/features/curl-apt-get:1": {}
+	"build": {
+		"dockerfile": "Dockerfile"
 	},
+	
+	"postCreateCommand": "lake exe cache get && lake build",
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-
-	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none",
-
-	"postStartCommand": "source /home/vscode/.elan/env",
-
-	// Configure tool-specific properties.
 	"customizations": {
 		"vscode" : {
 		  "extensions" : [ "leanprover.lean4" ]
 		}
 	  }
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
 }
