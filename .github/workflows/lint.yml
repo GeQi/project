@@ -1,12 +1,6 @@
 on:
   push:
-    branches:
-      - 'main'
-    paths:
-      - '.github/**'
   pull_request:
-    paths:
-      - '.github/**'
   merge_group:
 
 name: lint
