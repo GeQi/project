@@ -14,7 +14,9 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none && source /home/vscode/.elan/env",
+	"postCreateCommand": "curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none",
+
+	"postStartCommand": "source /home/vscode/.elan/env",
 
 	// Configure tool-specific properties.
 	"customizations": {
