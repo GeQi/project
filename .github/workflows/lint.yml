@@ -1,0 +1,38 @@
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - '.github/**'
+  pull_request:
+    paths:
+      - '.github/**'
+  merge_group:
+
+name: lint
+
+jobs:
+  style_lint:
+    name: Lint style
+    runs-on: ubuntu-latest
+    steps:
+      - name: cleanup
+        run: |
+          find . -name . -o -prune -exec rm -rf -- {} +
+
+      - uses: actions/checkout@v3
+
+      - name: install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+
+      - name: lint
+        continue-on-error: true
+        run: |
+          ./scripts/lint-style.sh --fix
+
+      - name: suggester / lint-style
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: lint-style
