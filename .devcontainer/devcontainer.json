@@ -8,6 +8,8 @@
 	},
 	
 	"onCreateCommand": "lake exe cache get && lake build",
+	
+	"postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
 
 	"customizations": {
 		"vscode" : {
