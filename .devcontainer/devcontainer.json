@@ -7,9 +7,7 @@
 		"dockerfile": "Dockerfile"
 	},
 	
-	"onCreateCommand": "lake exe cache get && lake build",
-	
-	"postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+	"onCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && lake exe cache get && lake build",
 
 	"customizations": {
 		"vscode" : {
