@@ -72,7 +72,7 @@ lemma zmod_val_sub_div_by_n_eq (n : ℕ) [nz: NeZero n] (a b : ZMod n) (h : (n :
     linarith
   cases n
   · simp only [Nat.zero_eq, neZero_zero_iff_false] at nz
-  · simp only [ZMod.val, ZMod.val_nat_cast] at h6
+  · simp only [ZMod.val] at h6
     exact Fin.eq_of_val_eq h6
 
 @[to_additive]
@@ -103,7 +103,7 @@ lemma zmod_val_add_mod (n : ℕ) [NeZero n] (a b : ZMod n) :
 
 lemma val_eq_val_of_val {n : ℕ} (x : ZMod n) :
     ZMod.val x = ZMod.val (ZMod.val x : ZMod n) := by
-  simp only [ZMod.val_nat_cast]
+  simp
   -- refine (Nat.mod_eq_of_lt ?h).symm
   if hn : n = 0 then
     simp only [hn, Nat.mod_zero]
@@ -117,7 +117,7 @@ lemma residue_eq_of_val {n : ℕ} (x : ZMod n) (h : n > 0):
   letI : NeZero n := NeZero.of_pos h
   refine zmod_val_sub_div_by_n_eq n x ↑(ZMod.val x) ?h
   rw [val_eq_val_of_val x]
-  simp only [ZMod.nat_cast_val, ZMod.cast_id', id_eq, sub_self, dvd_zero]
+  simp only [ZMod.natCast_val, ZMod.cast_id', id_eq, sub_self, dvd_zero]
 
 lemma castHom_of_coe_eq_coe {m n : ℕ} (h : m ∣ n) (x : ℕ) :
     ZMod.castHom h (ZMod m) x = x := map_natCast (ZMod.castHom h (ZMod m)) x
@@ -126,7 +126,7 @@ lemma val_eqiv_val_of_residue' {m n : ℕ} (h : m ∣ n) (x : ZMod n) (hn : n > 
     ZMod.val (ZMod.castHom h (ZMod m) x) = ZMod.val x % m := by
   rw [residue_eq_of_val x hn]
   rw [castHom_of_coe_eq_coe]
-  simp only [CharP.cast_eq_zero, mul_zero, zero_add, ZMod.val_nat_cast]
+  simp only [ZMod.val_natCast]
   exact (Nat.mod_mod_of_dvd _ h).symm
 
 lemma val_eqiv_val_of_residue {m n : ℕ} (h : m ∣ n) (x : ZMod n) (hn : n > 0):
@@ -190,9 +190,9 @@ lemma exists_endToPow {G : Type*} [Group G] [Fintype G] [h : IsCyclic G] (σ : M
   obtain ⟨m, hm⟩ := exists_endToIntPow σ
   let n := (m : ZMod (Fintype.card G))
   have hn : is_endToPow σ n := by
-    simp only [is_endToPow, is_endToIntPow, ZMod.nat_cast_val]
+    simp only [is_endToPow, is_endToIntPow]
     intro g
-    rw [hm, ZMod.coe_int_cast m]
+    rw [hm, ZMod.val_intCast]
     exact (zpow_mod_card g m).symm
   use n
 
